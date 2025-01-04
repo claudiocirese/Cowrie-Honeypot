@@ -94,6 +94,7 @@ sudo netfilter-persistent save
 3. **Lowering the Modem Firewall**
 
 Some ISP routers label firewall levels as "High/Medium/Low". Setting it to "Low" (or an equivalent "Allow" state) helped in this scenario, to let inbound port 22 pass through.
+Also, I verified that the port was open using a service named canyouseeme.org. It showed “Success”, confirming that external SSH traffic could reach the honeypot.
 
 ## Running Cowrie
 1. **Activate the virtual environment and start Cowrie**:
@@ -138,67 +139,32 @@ A Python script, analyze_cowrie.py, was written to parse the cowrie.json file. I
 - Top credentials (username/password combos)
 - Commands that attackers tried to run
 
-Below is a simplified version of that script:
+Below is an excerpt from my `analyze_cowrie.py` script, which parses the `cowrie.json` file and summarizes login attempts, credentials, and commands. 
+For the complete code, see [analyze_cowrie.py](./analyze_cowrie.py).
 ```python
-import json
-import os
-
-LOG_PATH = "../log/cowrie.json"  # Adjust path as needed
+# analyze_cowrie.py (excerpt)
 
 def main():
+    # Dictionaries for stats
     ip_count = {}
     credentials_count = {}
     commands_count = {}
 
-    if not os.path.isfile(LOG_PATH):
-        print(f"No log file found at {LOG_PATH}")
-        return
+    # Additional counters
+    total_lines = 0
+    total_events = 0
+    login_attempts = 0
 
-    with open(LOG_PATH, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                data = json.loads(line)
-            except json.JSONDecodeError:
-                continue
+    # (Some lines omitted for brevity)
+    
+    print("=== SUMMARY ===")
+    print(f"Total lines in the log file: {total_lines}")
+    print(f"Total valid JSON events: {total_events}")
+    print(f"Total login attempts: {login_attempts}")
+    print(f"Number of unique IPs: {len(ip_count)}")
 
-            eventid = data.get("eventid", "")
-            src_ip = data.get("src_ip", "")
+    # ... remainder of the script is in 'analyze_cowrie.py'
 
-            # Track login attempts
-            if eventid in ["cowrie.login.failed", "cowrie.login.success"]:
-                username = data.get("username", "")
-                password = data.get("password", "")
-                ip_count[src_ip] = ip_count.get(src_ip, 0) + 1
-
-                creds_key = f"{username}:{password}"
-                credentials_count[creds_key] = credentials_count.get(creds_key, 0) + 1
-
-            # Track commands
-            if eventid == "cowrie.command.input":
-                cmd = data.get("input", "")
-                commands_count[cmd] = commands_count.get(cmd, 0) + 1
-
-    # Print top 10 IPs
-    print("=== TOP 10 IP (by number of login attempts) ===")
-    for ip, num in sorted(ip_count.items(), key=lambda x: x[1], reverse=True)[:10]:
-        print(f"{ip} -> {num} attempts")
-
-    # Print top 10 credentials
-    print("\n=== TOP 10 CREDENTIALS USED ===")
-    for creds, num in sorted(credentials_count.items(), key=lambda x: x[1], reverse=True)[:10]:
-        print(f"{creds} -> {num} times")
-
-    # Print top 10 commands
-    print("\n=== TOP 10 COMMANDS ENTERED ===")
-    for cmd, num in sorted(commands_count.items(), key=lambda x: x[1], reverse=True)[:10]:
-        print(f"{cmd} -> {num} times")
-
-
-if __name__ == "__main__":
-    main()
 ```
 To run it:
 ```bash 
