@@ -6,6 +6,8 @@ Over several days, the honeypot recorded real-world scans and attacks from bots 
 An accompanying Python script analyzes the resulting logs to identify the most frequent IP addresses, usernames/passwords, and commands used by intruders.
 It's useful to learn about log analysis, port forwarding, and Python scripting to derive meaningful insights from honeypot data.
 
+DISCLAIMER: Running a public-facing honeypot can pose security risks. Please ensure the environment is isolated and without sensitive data.
+
 ## Table of Contents
 1. [Environment Setup](#environment-setup)  
 2. [Installing Cowrie](#installing-cowrie)  
@@ -20,10 +22,12 @@ It's useful to learn about log analysis, port forwarding, and Python scripting t
 ---
 
 ## Environment Setup
-- **Host Machine**: A standard desktop running VirtualBox (or VMware).  
+- **Host Machine**: A standard desktop running VirtualBox (or VMware).
+  
 - **Guest OS**: Ubuntu Server 22.04 LTS (64-bit) configured with:
   - 1–2 GB of RAM
   - Bridged network adapter (to obtain a local IP address, e.g., `192.168.1.xxx`)
+    
 - **Software**:
   - Python 3
   - Git
@@ -35,36 +39,36 @@ I assigned a **static or reserved IP** (e.g., `192.168.1.179`) to avoid changes 
 
 ## Installing Cowrie
 1. **Update the system**:
+
    ```bash
    sudo apt update && sudo apt upgrade -y
    ```
-2. **Install required packages**:
+3. **Install required packages**:
    ```bash
    sudo apt-get install -y git python3-venv python3-dev libssl-dev libffi-dev build-essential
-3. **Clone the Cowrie repository**:
+4. **Clone the Cowrie repository**:
    ```bash
    cd /home/<your-username>/
    git clone https://github.com/cowrie/cowrie.git
    cd cowrie
    ```
-4. **Create and activate a Python virtual environment**:
+5. **Create and activate a Python virtual environment**:
    ```bash
    python3 -m venv cowrie-env
    source cowrie-env/bin/activate
    pip install --upgrade pip setuptools
    ```
-5. **Install Cowrie dependencies**:
+6. **Install Cowrie dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
-6. **Copy default configuration and (optionally) edit**:
+7. **Copy default configuration and (optionally) edit**:
    ```bash
    cp etc/cowrie.cfg.dist etc/cowrie.cfg
    nano etc/cowrie.cfg
    ```
 
-By default, Cowrie listens on port 2222 for SSH. 
-You can redirect port 22 → 2222 via iptables or set up the router to forward port 22 to your VM’s 2222.
+By default, Cowrie listens on port 2222 for SSH. You can redirect port 22 → 2222 via iptables or set up the router to forward port 22 to your VM’s 2222.
 
 ---
 
@@ -86,24 +90,36 @@ To make rules persistent:
 sudo apt-get install netfilter-persistent
 sudo netfilter-persistent save
 ```
+
 3. **Lowering the Modem Firewall**
-Some ISP routers label firewall levels as "High/Medium/Low". Setting it to "Low" (or an equivalent "Allow" state)
-helped in this scenario to let inbound port 22 pass through.
+
+Some ISP routers label firewall levels as "High/Medium/Low". Setting it to "Low" (or an equivalent "Allow" state) helped in this scenario, to let inbound port 22 pass through.
 
 ## Running Cowrie
-1. Activate the virtual environment and start Cowrie:
+1. **Activate the virtual environment and start Cowrie**:
 ```bash
 cd /home/<your-username>/cowrie
 source cowrie-env/bin/activate
 bin/cowrie start
 ```
-2. Logs are generated under the log/ directory:
-- cowrie.log (text based)
-- cowrie.json (JSON-formatted events)
+2. **Logs are generated under the log/ directory**:
+- `cowrie.log` (text based)
+- `cowrie.json` (JSON-formatted events)
 3. **Testing**:
 - From another machine (or a phone on mobile data), you can run:
 ```bash
 ssh root@<your-public-IP> -p 22
+```
+4. **(Optional) Other commands**:
+- Stop Cowrie:
+```bash
+cd /home/<your-username>/cowrie
+source cowrie-env/bin/activate
+bin/cowrie stop
+```
+- Check Cowrie status:
+```bash
+ps aux | grep cowrie
 ```
 
 ---
@@ -111,7 +127,7 @@ ssh root@<your-public-IP> -p 22
 ## Data Collection
 Over a 3-day period, the VM was left online, collecting real attacks and commands
 from bots scanning the internet.
-The size and frquency of attacks can vary. In some cases, you'll see dozens of attempts per day;
+The size and frequency of attacks can vary. In some cases, you'll see dozens of attempts per day;
 other times, you may get fewer.
 
 ---
@@ -196,7 +212,9 @@ You'll see a summary of IPs, credentials, and commands.
 
 ## Screenshots
 Here's an example snippet of the logs and the script's output after three days of data collection:
+- **Logs Example**
 ![Logs Example](screenshots/logs.JPG)
+- **Script Output**
 ![Script Output](screenshots/script_output.JPG)
 
 ---
