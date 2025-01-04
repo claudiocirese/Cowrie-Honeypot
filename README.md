@@ -71,10 +71,11 @@ You can redirect port 22 → 2222 via iptables or set up the router to forward p
 ## Port Forwarding & Firewall
 1. **Router Configuration**:
 Logged into the router’s admin panel, added a port forwarding rule:
-WAN Port: 22
-LAN IP: 192.168.1.179 (my VM’s IP)
-LAN Port: 22 (or 2222, depending on Cowrie’s config)
+- WAN Port: 22
+- LAN IP: 192.168.1.179 (my VM’s IP)
+- LAN Port: 22 (or 2222, depending on Cowrie’s config)
 Made sure the router firewall allows inbound connections on port 22.
+
 2. **Ubuntu Firewall / iptables**:
 A simple example to redirect port 22 → 2222:
 ```bash
@@ -195,8 +196,8 @@ You'll see a summary of IPs, credentials, and commands.
 
 ## Screenshots
 Here's an example snippet of the logs and the script's output after three days of data collection:
-![Logs Example](logs.jpg)
-![Script Output](script_output.jpg)
+![Logs Example](screenshots/logs.JPG)
+![Script Output](screenshots/script_output.JPG)
 
 ---
 
