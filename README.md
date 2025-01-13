@@ -6,7 +6,7 @@ Over several days, the honeypot recorded real-world scans and attacks from bots 
 An accompanying Python script analyzes the resulting logs to identify the most frequent IP addresses, usernames/passwords, and commands used by intruders.
 It's useful to learn about log analysis, port forwarding, and Python scripting to derive meaningful insights from honeypot data.
 
-DISCLAIMER: Running a public-facing honeypot can pose security risks. Please ensure the environment is isolated and without sensitive data.
+DISCLAIMER: Running a public-facing honeypot could pose security risks. You should ensure the environment is isolated and without sensitive data.
 
 ## Table of Contents
 1. [Environment Setup](#environment-setup)  
@@ -15,11 +15,11 @@ DISCLAIMER: Running a public-facing honeypot can pose security risks. Please ens
 4. [Running Cowrie](#running-cowrie)  
 5. [Data Collection](#data-collection)  
 6. [Log Analysis (Python Script)](#log-analysis-python-script)  
-7. [Screenshots](#screenshots)  
-8. [License](#license)  
-9. [Author](#author)
+7. [Screenshots](#screenshots)
+8. [Understanding the Script Output](#understanding-the-script-output)
+9. [License](#license)  
+10. [Author](#author)
 
----
 
 ## Environment Setup
 - **Host Machine**: A standard desktop running VirtualBox (or VMware).
@@ -33,9 +33,8 @@ DISCLAIMER: Running a public-facing honeypot can pose security risks. Please ens
   - Git
   - Basic build tools and libraries (`python3-venv`, `python3-dev`, `libssl-dev`, etc.)
 
-I assigned a **static or reserved IP** (e.g., `192.168.1.179`) to avoid changes on reboot.
+I assigned a **static IP** (e.g., `192.168.1.179`) to avoid changes on reboot.
 
----
 
 ## Installing Cowrie
 1. **Update the system**:
@@ -70,7 +69,6 @@ I assigned a **static or reserved IP** (e.g., `192.168.1.179`) to avoid changes 
 
 By default, Cowrie listens on port 2222 for SSH. You can redirect port 22 → 2222 via iptables or set up the router to forward port 22 to your VM’s 2222.
 
----
 
 ## Port Forwarding & Firewall
 1. **Router Configuration**:
@@ -123,7 +121,6 @@ bin/cowrie stop
 ps aux | grep cowrie
 ```
 
----
 
 ## Data Collection
 Over a 3-day period, the VM was left online, collecting real attacks and commands
@@ -131,7 +128,6 @@ from bots scanning the internet.
 The size and frequency of attacks can vary. In some cases, you'll see dozens of attempts per day;
 other times, you may get fewer.
 
----
 
 ## Log Analysis (Python Script)
 A Python script, analyze_cowrie.py, was written to parse the cowrie.json file. It extracts:
@@ -174,7 +170,6 @@ python analyze_cowrie.py
 ```
 You'll see a summary of IPs, credentials, and commands.
 
----
 
 ## Screenshots
 Here's an example snippet of the logs and the script's output after three days of data collection:
@@ -183,12 +178,34 @@ Here's an example snippet of the logs and the script's output after three days o
 - **Script Output**
 ![Script Output](screenshots/script_output.JPG)
 
----
+## Understanding the Script Output
+
+1. **Summary Counters**  
+   - **Total lines / valid JSON events**: Almost all lines in `cowrie.json` were parsed successfully.  
+   - **Total login attempts**: 33 events labeled as `cowrie.login.failed` or `cowrie.login.success` were detected.  
+   - **Number of unique IPs**: Ten distinct IP addresses tried to access the honeypot, with some more persistent than others.
+
+2. **Top 10 IP**  
+   - `219.102.87.62` was the most active, attempting 10 logins.  
+   - A few IPs appeared only once, suggesting quick scans or incomplete brute-force attempts.
+
+3. **Top 10 Credentials**  
+   - Combinations like `root:admin!@#` show that attackers test various password formats, sometimes including special characters.  
+   - Common guesses (`root:admin`, `test:123`) are a reminder that default or weak credentials are frequently targeted.
+
+4. **Top 10 Commands**  
+   - Most entries (`sh`, `ifconfig`, `uname -a`) indicate standard attempts to gather system info or invoke a shell.  
+   - In some cases, you might find longer or more complex commands (e.g., `wget <malicious-URL>` or script-based commands). Those often point to malware download attempts, cryptominer installs, or other malicious actions.  
+   - Every command is captured by Cowrie, even though attackers never gain real system access.
+
+In conclusion, these logs show how automated scans and brute-force scripts systematically probe SSH ports with common credentials, then try basic commands. Even in a short timeframe, multiple IPs launched different attack patterns, highlighting why strong SSH security is essential.
+
+
+
 
 ## License
 This project is released under the [MIT License](./LICENSE).
 
----
 
 ## Author
 Created by Claudio Cirese, (C) 2025.  
